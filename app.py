@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 # 1. CONFIGURACIÓN DE LA PÁGINA
 # ============================================================
 st.set_page_config(
-    page_title="Galería Algorítmica",
+    page_title="Galería Algorítmica | IDSA",
     page_icon="🎨",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -131,13 +131,46 @@ st.sidebar.caption("IDSA · Aprendizaje Basado en la Curiosidad · 2026")
 def query_huggingface(api_url, payload, token, retries=5):
     headers = {"Authorization": f"Bearer {token}"}
     for i in range(retries):
-        response = requests.post(api_url, headers=headers, json=payload)
-        if response.status_code == 200:
-            return response.content
-        elif response.status_code == 503:
-            time.sleep(3)  # Esperar si el modelo se está cargando
-        else:
-            break
+        try:
+            # Añadimos un timeout de 25 segundos para evitar bloqueos indefinidos de socket
+            response = requests.post(api_url, headers=headers, json=payload, timeout=25)
+            
+            if response.status_code == 200:
+                return response.content
+            elif response.status_code == 503:
+                # El modelo se está cargando en la infraestructura de Hugging Face.
+                # Intentamos leer el tiempo estimado si la respuesta de la API lo provee.
+                try:
+                    estimated_time = response.json().get("estimated_time", 5)
+                    # Dormimos el tiempo estimado o un máximo seguro de 10s antes del reintento
+                    time.sleep(min(estimated_time, 10))
+                except Exception:
+                    time.sleep(5)
+            elif response.status_code == 401:
+                st.error("🔑 **Error de Autorización (401):** Tu token de Hugging Face es inválido o no tiene permisos de lectura (Read).")
+                break
+            elif response.status_code == 429:
+                st.warning("⏳ **Límite de solicitudes (429):** Hugging Face pausó temporalmente las consultas por exceso de uso. Esperando 5 segundos antes de reintentar...")
+                time.sleep(5)
+            else:
+                st.error(f"⚠️ **Error de API ({response.status_code}):** {response.text[:150]}")
+                break
+        except requests.exceptions.Timeout:
+            if i < retries - 1:
+                time.sleep(2)
+            else:
+                st.error("⏱️ **Tiempo de espera agotado (Timeout):** El servidor de Hugging Face tardó demasiado en responder. Probá de nuevo en unos segundos.")
+        except requests.exceptions.ConnectionError:
+            if i < retries - 1:
+                # Micro-cortes de red comunes en Streamlit Cloud, reintentamos de forma silenciosa
+                time.sleep(2)
+            else:
+                st.error("🔌 **Falla de Conexión de Red:** No se pudo establecer contacto con Hugging Face. Esto suele ser un micro-corte temporal del servidor de Streamlit o de la red externa. Por favor, reintentá.")
+        except requests.exceptions.RequestException as e:
+            if i < retries - 1:
+                time.sleep(2)
+            else:
+                st.error(f"💥 **Error de Red Inesperado:** {str(e)}")
     return None
 
 def image_to_base64(image):
@@ -166,11 +199,12 @@ def draw_meme_text(img, top_text, bottom_text):
 
 # --- INICIO ---
 if opcion == "Inicio":
-    st.markdown("<h1 class='main-header'>Bienvenidos a Galería Algoritmica</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='sub-header'>Un espacio para jugar con la frontera entre el arte, los algoritmos y la imaginación</p>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>Arte, Ciencia de Datos y Curiosidad</h1>", unsafe_allow_html=True)
+    st.markdown("<p class='sub-header'>Un espacio para jugar con la frontera entre los algoritmos y la imaginación</p>", unsafe_allow_html=True)
     
     st.markdown("""
-    Este es un laboratorio interactivo diseñado para que experimentes, juegues y desmitifiques la Inteligencia Artificial.
+    Bienvenido a la **Galería Algorítmica**. Este no es un catálogo de productos, ni un sistema de ventas. Es un laboratorio interactivo 
+    diseñado para que experimentes, juegues y desmitifiques la Inteligencia Artificial.
     
     Tradicionalmente, la ciencia de datos se presenta como un conjunto árido de ecuaciones y líneas de código frías. Creemos que el verdadero 
     aprendizaje nace del asombro. Por eso, diseñamos estas **10 experiencias visuales y sensoriales**. 
