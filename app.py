@@ -122,8 +122,8 @@ def query_huggingface(api_url, payload, token, retries=5):
     headers = {"Authorization": f"Bearer {token}"}
     for i in range(retries):
         try:
-            # Añadimos un timeout de 25 segundos para evitar bloqueos indefinidos de socket
-            response = requests.post(api_url, headers=headers, json=payload, timeout=25)
+            # Añadimos un timeout de 60 segundos para evitar bloqueos indefinidos de socket
+            response = requests.post(api_url, headers=headers, json=payload, timeout=60)
             
             if response.status_code == 200:
                 return response.content
