@@ -13,7 +13,7 @@ import numpy as np
 # ============================================================
 st.set_page_config(
     page_title="Galería Algorítmica | IDSA",
-    page_icon="",
+    page_icon="🎨",
     layout="centered",
     initial_sidebar_state="expanded"
 )
@@ -126,16 +126,18 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 3. GESTIÓN DE TOKEN Y NAVEGACIÓN
+# 3. GESTIÓN DE TOKEN Y NAVEGACIÓN ROBUSTA
 # ============================================================
 hf_token = st.secrets.get("HF_TOKEN", "")
 
-st.sidebar.title("️ Galería Algorítmica")
+st.sidebar.title("🖼️ Galería Algorítmica")
 st.sidebar.markdown("**Instituto Data Science Argentina**")
 st.sidebar.markdown("---")
 
+# Claves lógicas limpias para evitar bugs de encoding
 menu_keys = ["Inicio", "Retrato", "Poema", "Memes", "Emociones", "Historias", "DataArt"]
 
+# Mapeo de claves lógicas a etiquetas visuales con emojis
 menu_labels = {
     "Inicio": "🏠 Inicio",
     "Retrato": "📸 Retrato Algorítmico",
@@ -143,7 +145,7 @@ menu_labels = {
     "Memes": "😂 Generador de Memes",
     "Emociones": "💝 Visualizador de Emociones",
     "Historias": "📖 Historias Interactivas",
-    "DataArt": " Data Art Generator"
+    "DataArt": "📊 Data Art Generator"
 }
 
 opcion = st.sidebar.radio(
@@ -163,25 +165,49 @@ else:
 st.sidebar.caption("🎨 Arte con IA · 100% Gratuito")
 
 # ============================================================
-# 4. FUNCIONES AUXILIARES
+# 4. FUNCIONES AUXILIARES BLINDADAS
 # ============================================================
-def query_huggingface(api_url, payload, token, retries=3):
+def query_huggingface(api_url, payload, token, retries=5):
+    """Consulta la API con máxima resiliencia ante fallos de red."""
     headers = {"Authorization": f"Bearer {token}"}
+    
     for attempt in range(retries):
         try:
             response = requests.post(api_url, headers=headers, json=payload, timeout=120)
+            
             if response.status_code == 503:
                 wait_time = response.json().get("estimated_time", 20)
                 st.warning(f"⏳ El modelo está despertando... esperando {wait_time:.0f}s (Intento {attempt+1}/{retries})")
                 time.sleep(wait_time)
+                
             elif response.status_code == 200:
                 return response.content
-            else:
-                st.error(f"❌ Error API {response.status_code}: {response.text[:100]}")
+                
+            elif response.status_code == 401:
+                st.error("❌ Token inválido. Verificá tu HF_TOKEN en Secrets.")
                 return None
-        except requests.exceptions.RequestException as e:
-            st.warning(f" Error de red: {str(e)[:50]}. Reintentando...")
+                
+            elif response.status_code == 429:
+                st.warning("⚠️ Límite de velocidad alcanzado. Esperando 10s...")
+                time.sleep(10)
+                
+            else:
+                st.error(f"❌ Error API {response.status_code}: {response.text[:200]}")
+                return None
+                
+        except requests.exceptions.ConnectionError:
+            st.warning(f"🌐 Error de conexión con Hugging Face (Intento {attempt+1}/{retries}). Reintentando en 5s...")
             time.sleep(5)
+            
+        except requests.exceptions.Timeout:
+            st.warning(f"⏱️ La solicitud tardó demasiado (Intento {attempt+1}/{retries}). Reintentando...")
+            time.sleep(5)
+            
+        except Exception as e:
+            st.error(f"❌ Error inesperado: {str(e)}")
+            return None
+    
+    st.error("😞 No se pudo conectar con Hugging Face después de varios intentos. Es probable que sus servidores estén saturados temporalmente. ¡Intentá de nuevo en 2 o 3 minutos!")
     return None
 
 def image_to_base64(image):
@@ -223,13 +249,13 @@ if opcion == "Inicio":
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("### ️ Tu recorrido por la galería")
+    st.markdown("### 🗺️ Tu recorrido por la galería")
     
     experiencias = [
         ("📸", "Retrato Algorítmico", "Transformá tu selfie en una obra maestra. ¿Cómo te verías pintado por Van Gogh o en estilo cyberpunk?"),
         ("🎨", "Poema Visual", "Escribí una palabra, un verso, un sentimiento. Mirá cómo la IA lo traduce en colores y formas abstractas."),
         ("😂", "Generador de Memes", "Porque el humor también es arte. Describí una situación y dejá que la IA cree el meme perfecto."),
-        ("", "Visualizador de Emociones", "¿Cómo se ve la alegría? ¿Y la melancolía? Escribí lo que sentís y observá cómo la IA lo pinta."),
+        ("💝", "Visualizador de Emociones", "¿Cómo se ve la alegría? ¿Y la melancolía? Escribí lo que sentís y observá cómo la IA lo pinta."),
         ("📖", "Historias Interactivas", "Vos elegís el género, la IA escribe. Vos decidís qué pasa después. Una novela colaborativa con una máquina."),
         ("📊", "Data Art Generator", "Subí un CSV aburrido y miralo transformarse en arte abstracto. Los datos nunca fueron tan bellos.")
     ]
@@ -258,7 +284,7 @@ elif opcion == "Retrato":
     
     st.markdown("""
     <div class="project-intro">
-        <div class="project-title">️ La experiencia</div>
+        <div class="project-title">🎭 La experiencia</div>
         <div class="project-description">
             ¿Alguna vez te preguntaste cómo te verías si fueras pintado por un maestro renacentista? 
             ¿O si vivieras en un universo cyberpunk? Acá tenés la oportunidad de descubrirlo. 
@@ -270,14 +296,14 @@ elif opcion == "Retrato":
     
     st.markdown("""
     <div class="inspiration-box">
-         <b>Inspiración:</b> Probá con "Convierteme en una pintura al óleo del siglo XVII", 
+        💡 <b>Inspiración:</b> Probá con "Convierteme en una pintura al óleo del siglo XVII", 
         "Hazme parecer un personaje de Blade Runner", o "Transformame en acuarela japonesa"
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<div class='tech-box'><div class='tech-title'> Detrás de escena:</div><div class='tech-item'>🤖 <b>Modelo:</b> InstructPix2Pix — un algoritmo que entiende instrucciones en lenguaje natural para editar imágenes</div><div class='tech-item'>🧠 <b>Conceptos:</b> Computer Vision, Image-to-Image Translation, Transfer Learning</div><div class='tech-item'>📚 <b>Perfecto para el curso:</b> Fundamentos de Visión por Computadora y Edición de Imágenes con IA</div></div>", unsafe_allow_html=True)
+    st.markdown("<div class='tech-box'><div class='tech-title'>🔬 Detrás de escena:</div><div class='tech-item'>🤖 <b>Modelo:</b> InstructPix2Pix — un algoritmo que entiende instrucciones en lenguaje natural para editar imágenes</div><div class='tech-item'>🧠 <b>Conceptos:</b> Computer Vision, Image-to-Image Translation, Transfer Learning</div><div class='tech-item'>📚 <b>Perfecto para el curso:</b> Fundamentos de Visión por Computadora y Edición de Imágenes con IA</div></div>", unsafe_allow_html=True)
     
-    uploaded = st.file_uploader(" Subí tu imagen (preferentemente un retrato)", type=["jpg", "png"])
+    uploaded = st.file_uploader("📤 Subí tu imagen (preferentemente un retrato)", type=["jpg", "png"])
     prompt = st.text_area("✍️ Describí la transformación que imaginás", placeholder="Ej: 'Convierteme en una pintura al óleo renacentista'", height=100)
     
     if st.button("🎨 Crear mi retrato algorítmico", type="primary", use_container_width=True):
@@ -305,7 +331,7 @@ elif opcion == "Poema":
     
     st.markdown("""
     <div class="project-intro">
-        <div class="project-title"> La experiencia</div>
+        <div class="project-title">🎭 La experiencia</div>
         <div class="project-description">
             Hay palabras que no se pueden explicar, solo se pueden sentir. "Melancolía". "Euforia". 
             "Nostalgia digital". Escribí una palabra, una frase, un verso que te represente, 
@@ -368,13 +394,13 @@ elif opcion == "Memes":
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<div class='tech-box'><div class='tech-title'>🔬 Detrás de escena:</div><div class='tech-item'> <b>Modelo:</b> Stable Diffusion + PIL ImageDraw — generación de imágenes + composición de texto</div><div class='tech-item'>🧠 <b>Conceptos:</b> Text-to-Image, Image Composition, Text Rendering, Cultural Pattern Recognition</div><div class='tech-item'> <b>Perfecto para el curso:</b> Procesamiento de Imágenes y Composición Visual</div></div>", unsafe_allow_html=True)
+    st.markdown("<div class='tech-box'><div class='tech-title'>🔬 Detrás de escena:</div><div class='tech-item'>🤖 <b>Modelo:</b> Stable Diffusion + PIL ImageDraw — generación de imágenes + composición de texto</div><div class='tech-item'>🧠 <b>Conceptos:</b> Text-to-Image, Image Composition, Text Rendering, Cultural Pattern Recognition</div><div class='tech-item'>📚 <b>Perfecto para el curso:</b> Procesamiento de Imágenes y Composición Visual</div></div>", unsafe_allow_html=True)
     
-    desc = st.text_area(" Describí la situación del meme", placeholder="Ej: 'Cuando el código compila a la primera'", height=100)
+    desc = st.text_area("📝 Describí la situación del meme", placeholder="Ej: 'Cuando el código compila a la primera'", height=100)
     t1 = st.text_input("Texto superior (opcional)", placeholder="Ej: 'YO:'")
     t2 = st.text_input("Texto inferior (opcional)", placeholder="Ej: 'EL CÓDIGO:'")
     
-    if st.button(" Crear mi meme", type="primary", use_container_width=True):
+    if st.button("😂 Crear mi meme", type="primary", use_container_width=True):
         if not hf_token or not desc:
             st.warning("⚠️ Describí una situación para comenzar.")
         else:
@@ -419,9 +445,9 @@ elif opcion == "Emociones":
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<div class='tech-box'><div class='tech-title'> Detrás de escena:</div><div class='tech-item'>🤖 <b>Modelo:</b> NLP (análisis de sentimientos) + Stable Diffusion — detección de emociones + generación de arte</div><div class='tech-item'>🧠 <b>Conceptos:</b> Natural Language Processing, Sentiment Analysis, Emotion Detection, Color Theory, Data Visualization</div><div class='tech-item'>📚 <b>Perfecto para el curso:</b> Procesamiento de Lenguaje Natural y Análisis de Sentimientos</div><div class='tech-item'>💡 <b>Próximo nivel:</b> Modelos como RoBERTa o BERT para análisis más preciso</div></div>", unsafe_allow_html=True)
+    st.markdown("<div class='tech-box'><div class='tech-title'>🔬 Detrás de escena:</div><div class='tech-item'>🤖 <b>Modelo:</b> NLP (análisis de sentimientos) + Stable Diffusion — detección de emociones + generación de arte</div><div class='tech-item'>🧠 <b>Conceptos:</b> Natural Language Processing, Sentiment Analysis, Emotion Detection, Color Theory, Data Visualization</div><div class='tech-item'>📚 <b>Perfecto para el curso:</b> Procesamiento de Lenguaje Natural y Análisis de Sentimientos</div><div class='tech-item'>💡 <b>Próximo nivel:</b> Modelos como RoBERTa o BERT para análisis más preciso</div></div>", unsafe_allow_html=True)
     
-    texto = st.text_area(" Escribí lo que sentís (un tweet, un poema, un mensaje)", placeholder="Ej: 'Hoy me siento en paz, todo fluye'", height=100)
+    texto = st.text_area("💬 Escribí lo que sentís (un tweet, un poema, un mensaje)", placeholder="Ej: 'Hoy me siento en paz, todo fluye'", height=100)
     
     if st.button("💝 Visualizar mis emociones", type="primary", use_container_width=True):
         if not hf_token or not texto:
@@ -429,18 +455,18 @@ elif opcion == "Emociones":
         else:
             with st.spinner("🎨 Analizando tus emociones..."):
                 emots = {
-                    "alegría": ["feliz", "alegre", "contento", "maravilloso", "excelente", "genial", "paz", "amor"],
-                    "tristeza": ["triste", "melancólico", "deprimido", "llorar", "dolor", "extraño", "soledad"],
+                    "alegria": ["feliz", "alegre", "contento", "maravilloso", "excelente", "genial", "paz", "amor"],
+                    "tristeza": ["triste", "melancolico", "deprimido", "llorar", "dolor", "extrano", "soledad"],
                     "ira": ["enojado", "furioso", "molesto", "irritado", "odio", "rabia", "frustrado"],
-                    "miedo": ["miedo", "terror", "asustado", "pánico", "ansiedad", "nervioso"],
-                    "sorpresa": ["sorprendido", "asombrado", "increíble", "wow", "impresionado", "no puedo creer"]
+                    "miedo": ["miedo", "terror", "asustado", "panico", "ansiedad", "nervioso"],
+                    "sorpresa": ["sorprendido", "asombrado", "increible", "wow", "impresionado", "no puedo creer"]
                 }
                 text_lower = texto.lower()
                 detected = {k: sum(1 for w in v if w in text_lower) for k, v in emots.items()}
                 dom = max(detected, key=detected.get) if any(detected.values()) else "neutral"
                 
                 styles = {
-                    "alegría": "bright yellow and orange colors, sunny, cheerful, warm, radiant",
+                    "alegria": "bright yellow and orange colors, sunny, cheerful, warm, radiant",
                     "tristeza": "blue and gray colors, melancholic, rainy, somber, deep",
                     "ira": "red and black colors, fiery, intense, dramatic, explosive",
                     "miedo": "dark purple and black, mysterious, shadowy, eerie, tense",
@@ -454,7 +480,7 @@ elif opcion == "Emociones":
                     hf_token
                 )
                 if res:
-                    st.markdown("###  Análisis emocional:")
+                    st.markdown("### 📊 Análisis emocional:")
                     for emotion, count in detected.items():
                         if count > 0:
                             st.write(f"- **{emotion.capitalize()}**: {'❤️' * count}")
@@ -489,16 +515,16 @@ elif opcion == "Historias":
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<div class='tech-box'><div class='tech-title'>🔬 Detrás de escena:</div><div class='tech-item'> <b>Modelo:</b> GPT-2 (Generative Pre-trained Transformer) — un modelo de lenguaje que genera texto coherente</div><div class='tech-item'>🧠 <b>Conceptos:</b> Natural Language Processing, Language Modeling, Text Generation, Transformers, Attention Mechanism, Temperature Sampling</div><div class='tech-item'>📚 <b>Perfecto para el curso:</b> Modelos de Lenguaje y Generación de Texto con Transformers</div><div class='tech-item'>💡 <b>Próximo nivel:</b> GPT-3, GPT-Neo, o fine-tuning en datasets de historias</div></div>", unsafe_allow_html=True)
+    st.markdown("<div class='tech-box'><div class='tech-title'>🔬 Detrás de escena:</div><div class='tech-item'>🤖 <b>Modelo:</b> GPT-2 (Generative Pre-trained Transformer) — un modelo de lenguaje que genera texto coherente</div><div class='tech-item'>🧠 <b>Conceptos:</b> Natural Language Processing, Language Modeling, Text Generation, Transformers, Attention Mechanism, Temperature Sampling</div><div class='tech-item'>📚 <b>Perfecto para el curso:</b> Modelos de Lenguaje y Generación de Texto con Transformers</div><div class='tech-item'>💡 <b>Próximo nivel:</b> GPT-3, GPT-Neo, o fine-tuning en datasets de historias</div></div>", unsafe_allow_html=True)
     
     if "story" not in st.session_state:
         st.session_state.story = ""
     
-    genero = st.selectbox("🎭 Elegí el género de tu historia", ["Ciencia Ficción", "Fantasía", "Terror", "Romance", "Aventura"])
+    genero = st.selectbox("🎭 Elegí el género de tu historia", ["Ciencia Ficcion", "Fantasia", "Terror", "Romance", "Aventura"])
     
     if st.button("📖 Iniciar una nueva historia", type="primary", use_container_width=True):
         if hf_token:
-            with st.spinner(" La IA está escribiendo el primer capítulo..."):
+            with st.spinner("📝 La IA está escribiendo el primer capítulo..."):
                 res = query_huggingface(
                     "https://api-inference.huggingface.co/models/gpt2",
                     {"inputs": f"En un mundo de {genero.lower()}, ", "parameters": {"max_new_tokens": 150, "temperature": 0.8, "top_p": 0.9}},
@@ -512,10 +538,10 @@ elif opcion == "Historias":
                         st.error("❌ Error al generar la historia. Intentá de nuevo.")
     
     if st.session_state.story:
-        st.markdown("###  Tu historia:")
+        st.markdown("### 📖 Tu historia:")
         st.write(st.session_state.story)
         
-        st.markdown("###  ¿Qué hace el protagonista ahora?")
+        st.markdown("### 🤔 ¿Qué hace el protagonista ahora?")
         decision = st.text_input("Escribí la próxima acción", placeholder="Ej: 'Abre la puerta misteriosa' o 'Huye del lugar'")
         
         if st.button("🔄 Continuar la historia"):
@@ -535,7 +561,7 @@ elif opcion == "Historias":
 
 # --- OPCIÓN G: DATA ART ---
 elif opcion == "DataArt":
-    st.markdown("<h1 class='main-header'> Data Art Generator</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>📊 Data Art Generator</h1>", unsafe_allow_html=True)
     st.markdown("<p class='sub-header'>Cuando los datos aburridos se transforman en arte abstracto</p>", unsafe_allow_html=True)
     
     st.markdown("""
@@ -558,7 +584,7 @@ elif opcion == "DataArt":
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<div class='tech-box'><div class='tech-title'>🔬 Detrás de escena:</div><div class='tech-item'> <b>Modelo:</b> Stable Diffusion + Pandas/NumPy — análisis estadístico + generación de arte basado en datos</div><div class='tech-item'>🧠 <b>Conceptos:</b> Data Analysis, Statistical Measures (mean, std), Exploratory Data Analysis (EDA), Data Visualization, Data-Driven Art, Pattern Recognition</div><div class='tech-item'>📚 <b>Perfecto para el curso:</b> Análisis de Datos y Visualización Creativa con Python</div><div class='tech-item'>💡 <b>Próximo nivel:</b> PCA, t-SNE para reducción dimensional, clustering con K-Means</div></div>", unsafe_allow_html=True)
+    st.markdown("<div class='tech-box'><div class='tech-title'>🔬 Detrás de escena:</div><div class='tech-item'>🤖 <b>Modelo:</b> Stable Diffusion + Pandas/NumPy — análisis estadístico + generación de arte basado en datos</div><div class='tech-item'>🧠 <b>Conceptos:</b> Data Analysis, Statistical Measures (mean, std), Exploratory Data Analysis (EDA), Data Visualization, Data-Driven Art, Pattern Recognition</div><div class='tech-item'>📚 <b>Perfecto para el curso:</b> Análisis de Datos y Visualización Creativa con Python</div><div class='tech-item'>💡 <b>Próximo nivel:</b> PCA, t-SNE para reducción dimensional, clustering con K-Means</div></div>", unsafe_allow_html=True)
     
     csv = st.file_uploader("📤 Subí tu archivo CSV", type=["csv"])
     
@@ -575,7 +601,7 @@ elif opcion == "DataArt":
             
             if st.button("🎨 Transformar datos en arte", type="primary", use_container_width=True):
                 if hf_token:
-                    with st.spinner(" Analizando patrones y generando arte..."):
+                    with st.spinner("📊 Analizando patrones y generando arte..."):
                         num_cols = df.select_dtypes(include=[np.number]).columns
                         stats = []
                         if len(num_cols) > 0:
