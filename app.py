@@ -115,16 +115,6 @@ opcion = st.sidebar.radio(
     format_func=lambda x: menu_labels[x]
 )
 
-st.sidebar.markdown("---")
-if not hf_token:
-    with st.sidebar.expander("⚙️ Configurar Token"):
-        hf_token = st.text_input("Hugging Face Token", type="password")
-        st.info("💡 Ingresá tu token para habilitar los modelos remotos.")
-else:
-    st.sidebar.success("✅ Conexión con Hugging Face activa")
-
-st.sidebar.caption("IDSA · Aprendizaje Basado en la Curiosidad · 2026")
-
 # ============================================================
 # 4. FUNCIONES AUXILIARES
 # ============================================================
@@ -199,12 +189,11 @@ def draw_meme_text(img, top_text, bottom_text):
 
 # --- INICIO ---
 if opcion == "Inicio":
-    st.markdown("<h1 class='main-header'>Arte, Ciencia de Datos y Curiosidad</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='sub-header'>Un espacio para jugar con la frontera entre los algoritmos y la imaginación</p>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>Bienvenido a la Galería Algorítmica</h1>", unsafe_allow_html=True)
+    st.markdown("<p class='sub-header'>Un espacio para jugar con la frontera entre el arte, los algoritmos y la imaginación</p>", unsafe_allow_html=True)
     
     st.markdown("""
-    Bienvenido a la **Galería Algorítmica**. Este no es un catálogo de productos, ni un sistema de ventas. Es un laboratorio interactivo 
-    diseñado para que experimentes, juegues y desmitifiques la Inteligencia Artificial.
+    Galería Algorítmica es un laboratorio interactivo diseñado para que experimentes, juegues y desmitifiques la Inteligencia Artificial.
     
     Tradicionalmente, la ciencia de datos se presenta como un conjunto árido de ecuaciones y líneas de código frías. Creemos que el verdadero 
     aprendizaje nace del asombro. Por eso, diseñamos estas **10 experiencias visuales y sensoriales**. 
