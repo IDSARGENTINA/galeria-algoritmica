@@ -59,13 +59,20 @@ st.markdown("""
         border-radius: 8px;
         margin-bottom: 1rem;
     }
+    .error-box {
+        background-color: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
 # GESTIÓN CENTRALIZADA DEL TOKEN DE HUGGING FACE
 # ============================================================
-hf_token = st.secrets.get("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", "")
+hf_token = st.secrets.get("HF_TOKEN", "")
 
 # ============================================================
 # SIDEBAR: NAVEGACIÓN Y CONFIGURACIÓN
@@ -100,23 +107,69 @@ st.sidebar.caption("Arte generado con IA · 100% Gratuito")
 # FUNCIONES AUXILIARES
 # ============================================================
 def query_huggingface(api_url, payload, token, retries=3):
-    """Función genérica para consultar la API de Hugging Face con reintentos."""
+    """Función genérica para consultar la API de Hugging Face con reintentos y manejo robusto de errores."""
     headers = {"Authorization": f"Bearer {token}"}
+    
     for attempt in range(retries):
-        response = requests.post(api_url, headers=headers, json=payload)
-        
-        if response.status_code == 503:
-            estimated_time = response.json().get("estimated_time", 20)
-            st.warning(f"🎨 El modelo está despertando... esperando {estimated_time:.0f} segundos (Intento {attempt + 1}/{retries})")
-            time.sleep(estimated_time)
-            continue
-        elif response.status_code == 200:
-            return response.content
-        else:
-            st.error(f"Error en la API: {response.status_code} - {response.text}")
-            return None
+        try:
+            response = requests.post(
+                api_url, 
+                headers=headers, 
+                json=payload,
+                timeout=120  # Timeout de 2 minutos
+            )
             
-    st.error("El modelo tardó demasiado en responder. Por favor, inténtalo de nuevo en unos momentos.")
+            if response.status_code == 503:
+                # Modelo cargando
+                try:
+                    error_data = response.json()
+                    estimated_time = error_data.get("estimated_time", 20)
+                except:
+                    estimated_time = 20
+                
+                st.warning(f"🎨 El modelo está despertando... esperando {estimated_time:.0f} segundos (Intento {attempt + 1}/{retries})")
+                time.sleep(estimated_time)
+                continue
+                
+            elif response.status_code == 401:
+                st.error("❌ Token de Hugging Face inválido. Por favor, verifica tu token en la barra lateral.")
+                return None
+                
+            elif response.status_code == 403:
+                st.error("❌ No tienes acceso a este modelo. Es posible que necesites aceptar los términos de licencia en Hugging Face.")
+                st.info("💡 Visita la página del modelo en huggingface.co y acepta los términos si es necesario.")
+                return None
+                
+            elif response.status_code == 404:
+                st.error("❌ Modelo no encontrado. El modelo puede haber sido movido o descontinuado.")
+                return None
+                
+            elif response.status_code == 200:
+                return response.content
+                
+            else:
+                st.error(f"Error en la API: {response.status_code}")
+                try:
+                    st.error(f"Detalles: {response.text[:500]}")
+                except:
+                    pass
+                return None
+                
+        except requests.exceptions.ConnectionError:
+            st.warning(f"🌐 Error de conexión con Hugging Face. Reintentando... (Intento {attempt + 1}/{retries})")
+            time.sleep(5)
+            continue
+            
+        except requests.exceptions.Timeout:
+            st.warning(f"⏱️ La solicitud tardó demasiado. Reintentando... (Intento {attempt + 1}/{retries})")
+            time.sleep(5)
+            continue
+            
+        except Exception as e:
+            st.error(f"Error inesperado: {str(e)}")
+            return None
+    
+    st.error("❌ No se pudo completar la solicitud después de varios intentos. Por favor, inténtalo de nuevo en unos minutos.")
     return None
 
 def image_to_base64(image):
@@ -156,7 +209,7 @@ if opcion == "🏠 Inicio":
         st.markdown("### 🎨 Poema Visual")
         st.markdown("""
         Escribe una palabra, frase o verso. El algoritmo lo traducirá
-        en una pieza de arte abstracto única y evocadora.
+        en una pieza de arte abstracto único y evocadora.
         """)
         st.info("💡 Prueba: 'Melancolía digital' o 'Café y código'")
     
@@ -244,7 +297,7 @@ elif opcion == "📸 Opción A: Retrato Algorítmico":
     st.markdown("<div class='footer'>Galería Algorítmica · Instituto Data Science Argentina</div>", unsafe_allow_html=True)
 
 # ============================================================
-# OPCIÓN C: POEMA VISUAL (Stable Diffusion 2.1)
+# OPCIÓN C: POEMA VISUAL (Stable Diffusion v1.5 - Más estable)
 # ============================================================
 elif opcion == "🎨 Opción C: Poema Visual":
     st.markdown("<h1 class='main-header'>🎨 Generador de Poemas Visuales</h1>", unsafe_allow_html=True)
@@ -269,7 +322,8 @@ elif opcion == "🎨 Opción C: Poema Visual":
                 enhanced_prompt = f"abstract art, visual poetry, generative art, {user_input}, vibrant colors, fluid shapes, digital masterpiece, highly detailed, ethereal, conceptual art, trending on artstation"
                 negative_prompt = "text, watermark, realistic, photographic, ugly, deformed, low quality, signature, letters"
                 
-                api_url = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1"
+                # Usando runwayml/stable-diffusion-v1-5 que es más estable en la capa gratuita
+                api_url = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
                 
                 payload = {
                     "inputs": enhanced_prompt,
