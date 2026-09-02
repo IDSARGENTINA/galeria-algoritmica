@@ -1,0 +1,31 @@
+
+---
+
+### 📄 Archivo `.gitignore` (Recomendado)
+
+```gitignore
+# Secrets
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Streamlit
+.streamlit/credentials.toml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
