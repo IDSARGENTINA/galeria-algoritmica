@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 # 1. CONFIGURACIÓN DE LA PÁGINA
 # ============================================================
 st.set_page_config(
-    page_title="Galería Algorítmica | IDSA",
+    page_title="Galería Algorítmica",
     page_icon="🎨",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -166,12 +166,11 @@ def draw_meme_text(img, top_text, bottom_text):
 
 # --- INICIO ---
 if opcion == "Inicio":
-    st.markdown("<h1 class='main-header'>Arte, Ciencia de Datos y Curiosidad</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='sub-header'>Un espacio para jugar con la frontera entre los algoritmos y la imaginación</p>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>Arte, Bienvenidos a Galería Algoritmica</h1>", unsafe_allow_html=True)
+    st.markdown("<p class='sub-header'>Un espacio para jugar con la frontera entre el arte, los algoritmos y la imaginación</p>", unsafe_allow_html=True)
     
     st.markdown("""
-    Bienvenido a la **Galería Algorítmica**. Este no es un catálogo de productos, ni un sistema de ventas. Es un laboratorio interactivo 
-    diseñado para que experimentes, juegues y desmitifiques la Inteligencia Artificial.
+    Este es un laboratorio interactivo diseñado para que experimentes, juegues y desmitifiques la Inteligencia Artificial.
     
     Tradicionalmente, la ciencia de datos se presenta como un conjunto árido de ecuaciones y líneas de código frías. Creemos que el verdadero 
     aprendizaje nace del asombro. Por eso, diseñamos estas **10 experiencias visuales y sensoriales**. 
