@@ -65,7 +65,7 @@ st.markdown("""
 # ============================================================
 # GESTIÓN CENTRALIZADA DEL TOKEN DE HUGGING FACE
 # ============================================================
-hf_token = st.secrets.get("HF_TOKEN", "")
+hf_token = st.secrets.get("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", "")
 
 # ============================================================
 # SIDEBAR: NAVEGACIÓN Y CONFIGURACIÓN
