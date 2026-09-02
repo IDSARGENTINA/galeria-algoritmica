@@ -166,7 +166,7 @@ def draw_meme_text(img, top_text, bottom_text):
 
 # --- INICIO ---
 if opcion == "Inicio":
-    st.markdown("<h1 class='main-header'>Arte, Bienvenidos a Galería Algoritmica</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>Bienvenidos a Galería Algoritmica</h1>", unsafe_allow_html=True)
     st.markdown("<p class='sub-header'>Un espacio para jugar con la frontera entre el arte, los algoritmos y la imaginación</p>", unsafe_allow_html=True)
     
     st.markdown("""
