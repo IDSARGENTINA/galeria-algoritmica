@@ -71,9 +71,9 @@ st.markdown("""
 # ============================================================
 hf_token = st.secrets.get("HF_TOKEN", "")
 
-st.sidebar.title("🖼️ Galería Algorítmica v2")
+st.sidebar.title("🖼️ Galería Algorítmica")
 st.sidebar.markdown("**Instituto Data Science Argentina**")
-st.sidebar.markdown("*De la Imaginación a la Ingeniería de Negocios*")
+st.sidebar.markdown("*De la Imaginación y el Arte a la Ingeniería de Negocios*")
 st.sidebar.markdown("---")
 
 # Menú extendido con las 4 nuevas propuestas alineadas a negocios
