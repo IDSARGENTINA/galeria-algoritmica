@@ -241,7 +241,7 @@ if opcion == "Inicio":
     <div class="welcome-box">
         <div class="welcome-title">✨ Bienvenido al futuro del arte</div>
         <div class="welcome-text">
-            Esta no es una galería común. Aquí los algoritmos son los artistas, los datos son los pinceles, 
+            Esta no es una galería de arte común. Aquí los algoritmos son los artistas, los datos son los pinceles, 
             y vos sos el curador. Cada obra que vas a crear es única, irrepetible, nacida de la colaboración 
             entre tu imaginación y la inteligencia artificial.<br><br>
             <b>¿Listo para crear algo que nadie más en el mundo ha visto?</b>
